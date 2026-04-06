@@ -1,0 +1,10 @@
+.page { height: calc(100vh - 80px); overflow-y: auto; }
+.coin-glow { 
+    width: 200px; height: 200px; 
+    background: radial-gradient(circle, #0072ff 0%, #000 80%);
+    border-radius: 50%; border: 4px solid #00c6ff;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: 0.1s;
+}
+.coin-glow:active { transform: scale(0.95); }
+.nav-item { cursor: pointer; color: #555; }

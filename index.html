@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>CLICKTON - TON Foundation Style</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <style>
+        :root { --ton-blue: #00c6ff; --bg-dark: #000000; }
+        body { background-color: var(--bg-dark); color: white; font-family: 'Inter', sans-serif; overflow: hidden; user-select: none; }
+        
+        .app-shell { height: 100vh; display: flex; flex-direction: column; }
+        .view-page { flex-grow: 1; display: none; padding: 20px; overflow-y: auto; }
+        .view-page.active { display: flex; flex-direction: column; }
+
+        /* Фикс: Аватарка теперь маленькая */
+        .avatar-box img { width: 45px; height: 45px; border-radius: 50%; border: 2px solid var(--ton-blue); }
+
+        /* ФИКС: МОНЕТА ТЕПЕРЬ ПО ЦЕНТРУ И НЕ НА ВЕСЬ ЭКРАН */
+        .coin-section { flex-grow: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .ton-coin {
+            width: 220px; height: 220px;
+            background: radial-gradient(circle, #0088cc, #000);
+            border-radius: 50%; border: 5px solid var(--ton-blue);
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; box-shadow: 0 0 30px rgba(0, 198, 255, 0.3);
+            transition: transform 0.05s ease;
+        }
+        .ton-coin:active { transform: scale(0.92); }
+        .ton-coin img { width: 120px; pointer-events: none; }
+
+        /* Навигация (Bootstrap) */
+        .nav-bar { background: #0a0a0a; border-top: 1px solid #333; padding: 10px 0; }
+        .nav-btn { color: #666; font-size: 12px; cursor: pointer; text-align: center; }
+        .nav-btn.active { color: var(--ton-blue); }
+
+        /* Эффект клика */
+        .tap-pop { position: absolute; color: var(--ton-blue); font-weight: bold; font-size: 24px; pointer-events: none; animation: popUp 0.6s forwards; }
+        @keyframes popUp { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-100px); } }
+    </style>
+</head>
+<body>
+
+<div class="app-shell">
+    <section id="home" class="view-page active">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div class="avatar-box d-flex align-items-center">
+                <img src="https://api.dicebear.com/7.x/pixel-art/svg?seed=Umar">
+                <span class="ms-2 fw-bold">Umarov</span>
+            </div>
+            <button class="btn btn-warning btn-sm fw-bold" onclick="game.claimDaily()">🎁 Daily</button>
+        </div>
+
+        <div class="coin-section">
+            <div class="text-center mb-4">
+                <h1 id="balance-display" class="display-2 fw-bold text-info">0</h1>
+                <p class="text-secondary small">TON COIN BALANCE</p>
+            </div>
+            <div id="coin-clicker" class="ton-coin">
+                <img src="https://cryptologos.cc/logos/toncoin-ton-logo.png">
+            </div>
+        </div>
+    </section>
+
+    <section id="friends" class="view-page">
+        <button class="btn btn-outline-light btn-sm mb-3 w-25" onclick="nav('home')">←</button>
+        <h2 class="text-center">👥 Друзья</h2>
+        <div class="card bg-dark border-secondary p-4 mt-4 text-center">
+            <p>Приглашай друзей и получай +5,000!</p>
+            <button class="btn btn-info fw-bold w-100">Пригласить</button>
+        </div>
+    </section>
+
+    <section id="top" class="view-page">
+        <button class="btn btn-outline-light btn-sm mb-3 w-25" onclick="nav('home')">←</button>
+        <h2 class="text-center">🏆 Топ Майнеров</h2>
+        <div class="list-group mt-4 bg-dark">
+            <div class="list-group-item bg-dark text-white border-secondary">1. @pavel — 1,200,000</div>
+            <div class="list-group-item bg-dark text-white border-secondary">2. @umarov — 850,000</div>
+        </div>
+    </section>
+
+    <section id="boost" class="view-page">
+        <button class="btn btn-outline-light btn-sm mb-3 w-25" onclick="nav('home')">←</button>
+        <h2 class="text-center">🚀 Бусты</h2>
+        <div class="p-3 bg-dark border border-info rounded mt-4">
+            <span>Multitap (Lvl 1)</span>
+            <button class="btn btn-sm btn-info float-end">Купить</button>
+        </div>
+    </section>
+
+    <nav class="nav-bar container-fluid">
+        <div class="row g-0">
+            <div class="col nav-btn active" onclick="nav('home', this)">🏠<br>Home</div>
+            <div class="col nav-btn" onclick="nav('boost', this)">🚀<br>Boost</div>
+            <div class="col nav-btn" onclick="nav('friends', this)">👥<br>Friends</div>
+            <div class="col nav-btn" onclick="nav('top', this)">🏆<br>Top</div>
+        </div>
+    </nav>
+</div>
+
+<script>
+    const game = {
+        score: parseInt(localStorage.getItem('ton_score')) || 0,
+        
+        init() {
+            this.updateUI();
+            document.getElementById('coin-clicker').addEventListener('pointerdown', (e) => this.tap(e));
+        },
+
+        tap(e) {
+            this.score++;
+            this.updateUI();
+            this.showAnim(e.clientX, e.clientY);
+            localStorage.setItem('ton_score', this.score);
+        },
+
+        updateUI() {
+            document.getElementById('balance-display').innerText = this.score.toLocaleString();
+        },
+
+        showAnim(x, y) {
+            const p = document.createElement('div');
+            p.className = 'tap-pop'; p.innerText = '+1';
+            p.style.left = x + 'px'; p.style.top = y + 'px';
+            document.body.appendChild(p);
+            setTimeout(() => p.remove(), 600);
+        },
+
+        claimDaily() {
+            const now = Date.now();
+            const last = localStorage.getItem('last_d');
+            if (last && (now - last < 86400000)) {
+                alert("Бонус будет доступен через 24 часа!");
+                return;
+            }
+            this.score += 1000;
+            localStorage.setItem('last_d', now);
+            this.updateUI();
+            alert("Поздравляем! +1,000 TON зачислено.");
+        }
+    };
+
+    function nav(id, el) {
+        document.querySelectorAll('.view-page').forEach(p => p.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        if (el) {
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            el.classList.add('active');
+        }
+    }
+
+    game.init();
+</script>
+
+</body>
+</html>
